@@ -1,0 +1,45 @@
+version: '2'
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  my-mysql:
+    image: mysql:5.7
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password123
+    volumes:
+      - ~/opt/mysql/data:/var/lib/mysql  # Pour les users mac remplacer par ~/docker/mysql/data:/var/lib/mysql
+
+  my-phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    links:
+      - my-mysql:db
+    environment:
+      VIRTUAL_HOST: phpmyadmin.localhost
+
+  my-app:
+    image: jiangwei4/myappli
+    container_name: myappli
+    environment:
+      VIRTUAL_HOST: myappli.localhost
+
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    restart: always
+    hostname: gitlab.localhost
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://gitlab.localhost'
+    volumes:
+      - ~/opt/gitlab/config:/etc/gitlab
+      - ~/opt/gitlab/logs:/var/log/gitlab
+      - ~/opt/gitlab/data:/var/opt/gitlab
+    environment:
+      VIRTUAL_HOST: gitlab.localhost
